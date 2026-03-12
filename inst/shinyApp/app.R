@@ -165,8 +165,9 @@ ui <- shinydashboard::dashboardPage(
           downloadButton("downloadReconstructedTree", "Reconstructed Tree (.nwk)", class = "btn-sm btn-primary"),
           downloadButton("downloadFossils", "Fossil Ages (.tsv)", class = "btn-sm btn-primary"),
           downloadButton("downloadMatrix", "Trait Matrix (.nex)", class = "btn-sm btn-primary"),
-          downloadButton("downloadReconstructedMatrix", "Reconstructed Matrix (.nex)", class = "btn-sm btn-primary")
-        )
+          downloadButton("downloadReconstructedMatrix", "Reconstructed Matrix (.nex)", class = "btn-sm btn-primary"),
+          downloadButton("downloadScript", "R Script (.R)", class = "btn-sm btn-primary")
+          )
       )
     ),
 
@@ -499,6 +500,87 @@ server <- function(input, output, session) {
         shiny.grid(data, l = input$s, cbType = input$cbType)
       }
       dev.off()
+    }
+  )
+
+
+  ### download R script
+  output$downloadScript <- downloadHandler(
+    filename = function() {
+      paste0("morphsim_script_", Sys.Date(), ".R")
+    },
+    content = function(file) {
+      data <- savedData()
+      req(data)
+
+      # Build partition vectors from current inputs
+      num_traits <- sapply(1:input$l, function(i) {
+        val <- input[[paste0("group_", i)]]
+        if (is.null(val)) 2 else as.numeric(val)
+      })
+
+      num_states <- sapply(1:input$l, function(i) {
+        val <- input[[paste0("state_", i)]]
+        if (is.null(val)) 2 else as.numeric(val)
+      })
+
+      traits_vec <- paste0("c(", paste(num_traits, collapse = ", "), ")")
+      states_vec <- paste0("c(", paste(num_states, collapse = ", "), ")")
+
+      lines <- c(
+        "library(MorphSim)",
+        "library(TreeSim)",
+        "library(FossilSim)",
+        "",
+        "# Simulate birth-death tree",
+        paste0("tree <- TreeSim::sim.bd.taxa(n = ", input$n,
+               ", numbsim = 1, lambda = ", input$b,
+               ", mu = ", input$d, ", frac = 1)[[1]]"),
+        "",
+        "# Simulate fossil and extant sampling",
+        paste0("f <- FossilSim::sim.fossils.poisson(rate = ", input$psi,
+               ", tree = tree, root.edge = FALSE)"),
+        paste0("fossils <- FossilSim::sim.extant.samples(fossils = f, tree = tree, rho = ",
+               input$rho, ")"),
+        ""
+      )
+
+      # Build sim.morpho call
+      morpho_args <- c(
+        "time.tree = tree",
+        paste0("br.rates = ", input$r),
+        paste0("k = ", states_vec),
+        paste0("trait.num = ", sum(num_traits)),
+        paste0("partition = ", traits_vec),
+        "fossil = fossils"
+      )
+
+      if (input$variableCoding) {
+        morpho_args <- c(morpho_args, "variable = TRUE")
+      }
+
+      if (input$useGamma) {
+        morpho_args <- c(morpho_args, 'ACRV = "gamma"')
+      }
+
+      lines <- c(lines,
+                 "# Simulate morphological data",
+                 paste0("morpho_data <- MorphSim::sim.morpho(",
+                        paste(morpho_args, collapse = ",\n                                    "),
+                        ")")
+      )
+
+      # Add missing data if it was simulated
+      if (!is.null(missingData())) {
+        lines <- c(lines,
+                   "",
+                   "# Simulate missing data",
+                   paste0('morpho_data <- MorphSim::sim.missing.data(data = morpho_data, ',
+                          'method = "random", seq = "tips", probability = ', input$missing, ')')
+        )
+      }
+
+      writeLines(lines, file)
     }
   )
 }
