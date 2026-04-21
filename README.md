@@ -29,10 +29,10 @@ The Tree and Sampling menus control how the phylogenetic tree is generated and h
 | **Extinction rate (μ)**     | Rate at which lineages go extinct. |
 
 
-| Sampling parameter             | Description                                                                                                                                                |
-| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Fossil sampling rate**       | A Poisson process describing fossil recovery. Higher values produce more sampled fossils. Enabling **Show Samples** displays fossil samples as diamonds on branches and extant samples are green circles on the tips of tree. |
-| **Extant sampling proportion** | Proportion of living taxa that are sampled.                                                                                                          |
+| Sampling parameter                 | Description                                                                                                                                                |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Fossil sampling rate (ψ)**       | A Poisson process describing fossil recovery. Higher values produce more sampled fossils. Enabling **Show Samples** displays fossil samples as diamonds on branches and extant samples are green circles on the tips of tree. |
+| **Extant sampling proportion (ρ)** | Proportion of living taxa that are sampled.                                                                                                          |
 
 
 ### ii. Clock Model
@@ -47,7 +47,7 @@ These settings determine how morphological characters evolve along the tree:
 | Setting                            | Description                                                                                             |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | **Number of partitions**           | Number of independent subsets of characters.                                                            |
-| **Number of traits per partition** | Number of characters are simulated within each partition.                                                |
+| **Number of traits per partition** | Number of characters are simulated within each partition.                                               |
 | **Number of states**               | Number of discrete states for traits in each partition e.g., 2 (binary), 3, 4....                       |
 | **Morphological model**            | The substitution model used for character change. The standard **mk** model is extendable by simulating only varying traits (+V) and introducing site dependent rate heterogeneity (+G, fixed to 4 rates in the app). |
 
@@ -68,7 +68,20 @@ Above the plot there are additional boxes which can be ticked:
 |**Show samples**            | Displays the sampled fossils as diamonds on the branches and the sampled extant taxa as circles at the tips.                                                                             |
 |**Show reconstructed tree** | Highlights the reconstructable topology given the incompleteness of sampling.                                                       |
 
-### ii. Colorblindness Support
+### ii. Downloads
+
+MorphSimShiny allows to download the simulated data. These can be found below the plotted tree while using the app.
+
+- **Tree (.nwk)**: Contains the complete simulated phylogeny
+- **Reconstructed Tree (.nwk)**: The phylogeny containing only sampled taxa (extant and fossils)
+- **Fossil Ages (.tsv)**: Containins associated sampling ages of sampled taxa  
+- **Matrix (.nex)**: Containins character states of associated taxa 
+- **Reconstructed Matrix (.nex)**: The matrix containing only the sampled taxa
+- **R Script (.R)**: A script to run the current simulation setup via the command line
+
+> Note: The fossil ages and character matrices are readily usable in BEAST and RevBayes 
+
+### iii. Colorblindness Support
 
 Character states are displayed using color.
 If the default palette is not accessible, the Colorblindness menu offers alternatives designed for:
